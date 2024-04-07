@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe - Wilfran Luis Decena</title>
+    <style>
+      body {
+          margin: 0;
+          padding: 0;
+          font-family: 'Roboto', sans-serif;
+          background-color: #f9f9f9;
+      }
+      .header {
+          text-align: center;
+          padding: 10px;
+          background-color: #333;
+          color: #fff;
+      }
+
+      .container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+      }
+      h1 {
+          font-size: 3rem;
+          color: beige;
+          margin-bottom: 10px;
+      }
+      p {
+          font-size: 1.2rem;
+          color: #666;
+          margin-bottom: 20px;
+      }
+      .board-container {
+          width: 100%;
+          max-width: 500px;
+      }
+      .board {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 10px;
+          text-align: center;
+          width: 100%;
+      }
+
+      .cell {
+            width: 100%;
+            height: 100%;
+            font-size: 3rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            box-sizing: border-box; /* Asegura que el tamaño incluya el borde */
+        }
+
+      .button-container {
+          display: flex;
+          justify-content: center;
+          gap: 10px;
+          margin-top: 20px;
+      }
+      .button-container button {
+          padding: 10px 20px;
+          font-size: 1rem;
+      }
+  </style>
+</head>
+<body onload="adjustCellSize()">
+  <div class="yo">
+    <div class="header">
+        <h1>Wilfran Luis Decena</h1>
+        <p>Creador del juego Tic Tac Toe</p>
+    </div>
+    <div class="container">
+        <div class="board-container">
+            <div class="board" id="board">
+                <div class="cell" onclick="makeMove(0, 0)"></div>
+                <div class="cell" onclick="makeMove(0, 1)"></div>
+                <div class="cell" onclick="makeMove(0, 2)"></div>
+                <div class="cell" onclick="makeMove(1, 0)"></div>
+                <div class="cell" onclick="makeMove(1, 1)"></div>
+                <div class="cell" onclick="makeMove(1, 2)"></div>
+                <div class="cell" onclick="makeMove(2, 0)"></div>
+                <div class="cell" onclick="makeMove(2, 1)"></div>
+                <div class="cell" onclick="makeMove(2, 2)"></div>
+            </div>
+        </div>
+        <div class="button-container">
+            <button onclick="resetBoard()">Reiniciar</button>
+            <button onclick="clearBoard()">Limpiar</button>
+            <button onclick="exitGame()">Salir</button>
+        </div>
+    </div>
+  </div>
+
+    <script>
+        let currentPlayer = "X";
+        const board = [
+            ["", "", ""],
+            ["", "", ""],
+            ["", "", ""]
+        ];
+
+        function makeMove(row, col) {
+            if (board[row][col] === "") {
+                board[row][col] = currentPlayer;
+                document.getElementById("board").children[row * 3 + col].textContent = currentPlayer;
+                if (!checkWinner()) {
+                    currentPlayer = (currentPlayer === "X") ? "O" : "X";
+                    if (currentPlayer === "O") {
+                        setTimeout(() => computerMove(), 500); // Demora simulada para el movimiento de la computadora
+                    }
+                }
+            }
+        }
+
+        function computerMove() {
+            let move = getBestMove();
+            makeMove(move.row, move.col);
+        }
+
+        function getBestMove() {
+            let bestScore = -Infinity;
+            let move;
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (board[i][j] === "") {
+                        board[i][j] = "O";
+                        let score = minimax(board, 0, false);
+                        board[i][j] = "";
+                        if (score > bestScore) {
+                            bestScore = score;
+                            move = { row: i, col: j };
+                        }
+                    }
+                }
+            }
+            return move;
+        }
+
+        function minimax(board, depth, isMaximizing) {
+            let result = checkResult();
+            if (result !== null) {
+                return result;
+            }
+
+            if (isMaximizing) {
+                let bestScore = -Infinity;
+                for (let i = 0; i < 3; i++) {
+                    for (let j = 0; j < 3; j++) {
+                        if (board[i][j] === "") {
+                            board[i][j] = "O";
+                            let score = minimax(board, depth + 1, false);
+                            board[i][j] = "";
+                            bestScore = Math.max(score, bestScore);
+                        }
+                    }
+                }
+                return bestScore;
+            } else {
+                let bestScore = Infinity;
+                for (let i = 0; i < 3; i++) {
+                    for (let j = 0; j < 3; j++) {
+                        if (board[i][j] === "") {
+                            board[i][j] = "X";
+                            let score = minimax(board, depth + 1, true);
+                            board[i][j] = "";
+                            bestScore = Math.min(score, bestScore);
+                        }
+                    }
+                }
+                return bestScore;
+            }
+        }
+
+        function checkResult() {
+            // Verifica si alguien ha ganado o si hay empate
+            for (let i = 0; i < 3; i++) {
+                if (board[i][0] !== "" && board[i][0] === board[i][1] && board[i][0] === board[i][2]) {
+                    return (board[i][0] === "X") ? -1 : 1;
+                }
+                if (board[0][i] !== "" && board[0][i] === board[1][i] && board[0][i] === board[2][i]) {
+                    return (board[0][i] === "X") ? -1 : 1;
+                }
+            }
+            if (board[0][0] !== "" && board[0][0] === board[1][1] && board[0][0] === board[2][2]) {
+                return (board[0][0] === "X") ? -1 : 1;
+            }
+            if (board[0][2] !== "" && board[0][2] === board[1][1] && board[0][2] === board[2][0]) {
+                return (board[0][2] === "X") ? -1 : 1;
+            }
+            // Verifica si hay empate
+            let isDraw = true;
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (board[i][j] === "") {
+                        isDraw = false;
+                        break;
+                    }
+                }
+            }
+            if (isDraw) {
+                return 0;
+            }
+            return null;
+        }
+
+        function resetBoard() {
+            board.forEach(row => row.fill(""));
+            document.querySelectorAll(".cell").forEach(cell => cell.textContent = "");
+            currentPlayer = "X";
+        }
+
+        function clearBoard() {
+            document.querySelectorAll(".cell").forEach(cell => cell.textContent = "");
+        }
+
+        function exitGame() {
+            alert("¡Gracias por jugar! Hasta luego.");
+        }
+
+        function checkWinner() {
+            let result = checkResult();
+            if (result === -1) {
+                alert("¡Has ganado!");
+                resetBoard();
+                return true;
+            } else if (result === 1) {
+                alert("¡La computadora ha ganado!");
+                resetBoard();
+                return true;
+            } else if (result === 0) {
+                alert("¡Empate!");
+                resetBoard();
+                return true;
+            }
+            return false;
+        }
+
+        function adjustCellSize() {
+            const cells = document.querySelectorAll('.cell');
+            const boardWidth = document.getElementById('board').offsetWidth;
+            const cellSize = (boardWidth / 3) - 20; // Restamos el espacio entre celdas
+            cells.forEach(cell => {
+                cell.style.width = `${cellSize}px`;
+                cell.style.height = `${cellSize}px`;
+            });
+        }
+
+        // Llama a la función de ajuste de tamaño al cargar la página y cuando se redimensiona la ventana
+        window.addEventListener('load', adjustCellSize);
+        window.addEventListener('resize', adjustCellSize);
+    </script>
+</body>
+</html>
